@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head profile="http://www.w3.org/2005/10/profile">
+    <meta charset="UTF-8">
+    <link rel="icon" 
+      type="image/png" 
+      href="http://proximityviz.com/favicon.png">
+    <title>Books Read</title>
+
+    <script type="text/javascript" src="books-read-data.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+
+    <style type="text/css">
+    
+/*      div.month-bar {
+        display: block;
+        width: 20px;  Gets overriden by D3-assigned height below 
+        height: 20px; 
+        margin-bottom: 2px;
+      }*/
+    
+      .chart {
+        background-color: #ccc;
+      }
+    </style>
+
+
+    <script type="text/javascript" src="http://proximityviz.com/files/analytics.js"></script>
+  </head>
+  <body>
+
+  <script type="text/javascript">
+
+    var margin = {top: 20, right: 15, bottom: 15, left: 60},
+      width = 960 - margin.left - margin.right,
+      height = 400 - margin.top - margin.bottom,
+      yearWidth = width * 4 / 5,
+      monthWidth = width * 1 / 5,
+      barPadding = 2;
+
+    // var svg = d3.select('body')
+    //   .append('svg')
+    //   .attr('width', monthWidth) // change this later
+    //   .attr('height', height);
+
+    var chart = d3.select('body')
+      .append('svg:svg')
+      .attr('width', width + margin.right + margin.left)
+      .attr('height', height + margin.top + margin.bottom)
+      .attr('class', 'chart')
+
+    // what does this do?:
+    chart.append('defs').append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+        .attr('width', monthWidth)
+        .attr('height', height);
+
+    var annual = chart.append('g')
+      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+      .attr('width', yearWidth)
+      .attr('height', height)
+      .attr('class', 'annual');
+
+    var monthly = chart.append('g')
+      .attr('transform', 'translate(' + (yearWidth) + ',' + margin.top + ')')
+      .attr('width', monthWidth)
+      .attr('height', height)
+      .attr('class', 'monthly');
+
+    function onlyUnique(value, index, self) {
+      return self.indexOf(value) === index;
+    }
+
+    function monthlyData(data) {
+      var monthData = [];
+      for (var i = 0; i < data.length; i++) {
+        if (data[i][0] == 2002) {
+          monthData.push(data[i]);
+        };
+      };
+      return monthData;
+    }
+
+    function yearlyData(data) {
+      var annualData = [];
+      var allYears = [];
+      for (var i = 0; i < data.length; i++) {
+        allYears.push(data[i][0]);
+      };
+      yearsList = allYears.filter( onlyUnique );
+      // for each year
+      for (var i = 0; i < yearsList.length; i++) {
+        yearTotal = 0;
+        currentYear = yearsList[i];
+        for (var j = 0; j < data.length; j++) {
+          if (data[j][0] == currentYear) {
+            yearTotal += data[j][2];
+          };
+        };
+        annualData.push([currentYear, yearTotal]);
+      };
+      return annualData;
+    }
+
+
+    annual.selectAll('rect')
+      .data(yearlyData(dataset))
+      .enter()
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', function(d, i) {
+        return i * (height / yearlyData(dataset).length);
+      })
+      .attr('width', function(d) {
+        return d[1] * 7;
+      })
+      .attr('height', height / yearlyData(dataset).length - barPadding)
+      .attr('fill', '#f07300');
+
+    annual.selectAll('text')
+      .data(yearlyData(dataset))
+      .enter()
+      .append('text')
+      .text(function(d) {
+        return d[1];
+      })
+      .attr('x', function(d) {
+        return d[1] * 7;
+      })
+      .attr('y', function(d, i) {
+        return i * (height / yearlyData(dataset).length) + (height / yearlyData(dataset).length - 4);
+      });
+
+    monthly.selectAll('rect')
+      .data(monthlyData(dataset))
+      .enter()
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', function(d, i) {
+        return i * (height / 13);
+      })
+      .attr('width', function(d) {
+        return d[2] * 7;
+      })
+      .attr('height', height / 13 - barPadding)
+      .attr('fill', '#f07300');
+
+  </script>
+
+  </body>
+</html>
